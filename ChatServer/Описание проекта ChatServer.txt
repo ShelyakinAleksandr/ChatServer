@@ -1,0 +1,88 @@
+ChatServer 1-я часть проекта
+Web Api REST платформа .net Core 3.1
+используемые библиотеки Swager Swashbuckle.AspNetCore
+
+Сервис получает и сохраняет сообщения в json. 
+Сохраненые json файлы расположенны в папке с проектом.
+Например: C:\Users\Пользователь\source\repos\ChatServer\ChatServer\bin\Debug\netcoreapp3.1\Messeges
+
+В проекте реализован один контроллер ChatUsers с двумя методами POST: GetMessage и SendMessege.
+
+GetMessage возвращает сохраненые сообщения в формате json из папки Messeges.
+На вход принемает json файл
+
+{
+  "filter": true,
+  "dateStart": "2021-12-22T07:28:06.612Z",
+  "dateEnd": "2021-12-22T07:28:06.612Z"
+}
+
+Модели
+
+   public class FilterMessage
+    {
+        /// <summary>
+        /// Нужна ли сортировка по дате
+        /// </summary>
+        public bool Filter { get; set; }
+        /// <summary>
+        /// Дата начала поиска
+        /// </summary>
+        public DateTime DateStart { get; set; }
+
+        /// <summary>
+        /// Дата завершения поиска
+        /// </summary>
+        public DateTime DateEnd { get; set; }
+    }
+
+В ответ возвращает json  массив 
+[
+  {
+    "dateTimeMessege": "2021-12-19T14:25:32.0596826+03:00",
+    "nameUser": "Дядя Петя",
+    "messeges": "тестовое сообщение"
+  },
+  {
+    "dateTimeMessege": "2021-12-19T09:28:40.947Z",
+    "nameUser": "string",
+    "messeges": "string"
+  },
+  {
+    "dateTimeMessege": "2021-12-19T09:29:40.947Z",
+    "nameUser": "string",
+    "messeges": "string"
+  },
+  {
+    "dateTimeMessege": "2021-12-19T10:22:49.522Z",
+    "nameUser": "Ничего не знаю",
+    "messeges": "Давай сюда эту штуку"
+  }
+]
+
+SendMessege Сохраняет сообщения в папку Messeges
+На вход принимает json файл формата
+
+{
+  "dateTimeMessege": "2021-12-22T07:32:14.311Z",
+  "nameUser": "string",
+  "messeges": "string"
+}
+
+модели 
+
+ public class Message
+    {
+        /// <summary>
+        /// Время отправки
+        /// </summary>
+        public DateTime DateTimeMessege { get; set; }
+        /// <summary>
+        /// Имя пользователя
+        /// </summary>
+        public string NameUser { get; set; }
+        /// <summary>
+        /// Текст сообщения
+        /// </summary>
+        public string Messeges { get; set; }
+    }
