@@ -1,13 +1,13 @@
 ﻿using ChatServer.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.IO;
+using IO = System.IO;
 using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using Newtonsoft.Json;
 
 namespace ChatServer.Controllers
 {
@@ -19,57 +19,51 @@ namespace ChatServer.Controllers
         [HttpPost("GetMessage")]
         public async Task<List<Message>> GetMessage(FilterMessage filterMessage)
         {
-            string path = Directory.GetCurrentDirectory() + @"\Messeges";
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            string path = IO.Directory.GetCurrentDirectory() + @"\Messeges.json";
 
-            FileInfo[] allFile = directoryInfo.GetFiles();
+            IO.DirectoryInfo directoryInfo = new IO.DirectoryInfo(path);
 
-            List<Message> meseges = new List<Message>();
-
-            foreach (FileInfo file in allFile)
-            {
-                if (file.Extension == ".json")
-                {
-                    string line;
-
-                    using (StreamReader reader = new StreamReader(new FileStream(file.FullName, FileMode.Open)))
-                    {
-                        line = reader.ReadLine();
-                    }
-
-                    meseges.Add(JsonSerializer.Deserialize<Message>(line));
-                }
-            }
+             List<Message> messages = JsonConvert.DeserializeObject<List<Message>>(IO.File.ReadAllText(path));
 
             if (filterMessage.Filter)
             {
                 if (filterMessage.DateEnd != new DateTime(0001, 1, 1))
-                    return meseges.Where(mes => mes.DateTimeMessege.Date >= filterMessage.DateStart.Date &&
+                    return messages.Where(mes => mes.DateTimeMessege.Date >= filterMessage.DateStart.Date &&
                                                                        mes.DateTimeMessege.Date <= filterMessage.DateEnd.Date).ToList<Message>();
                 else
-                    return meseges.Where(mes => mes.DateTimeMessege.Date == filterMessage.DateStart.Date).ToList<Message>();
+                    return messages.Where(mes => mes.DateTimeMessege.Date == filterMessage.DateStart.Date).ToList<Message>();
             }
             else
-                return meseges;
+                return messages;
         }
 
         [HttpPost("SendMessege")]
         public async Task<ActionResult> SaveMessege(Message messege)
         {
-            string path = Directory.GetCurrentDirectory() + @"\Messeges";
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            string path = IO.Directory.GetCurrentDirectory() + @"\Messeges.json";
 
-            if (!directoryInfo.Exists)
-                directoryInfo.Create();
 
-            JsonSerializerOptions options = new JsonSerializerOptions
+            if (!IO.File.Exists(path))
             {
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
-                WriteIndented = true
-            };
+                List<Message> messages = new List<Message>();
+                messages.Add(messege);
 
-            await using FileStream fileStream = System.IO.File.Create(path+@"\" + messege.DateTimeMessege.ToString("dd.MM.yyyy hh.mm.ss") + ".json");
-            await JsonSerializer.SerializeAsync(fileStream, messege);
+               await using (IO.StreamWriter sw = IO.File.CreateText(path))
+                {
+                    sw.WriteLine(JsonConvert.SerializeObject(messages));
+                }
+            }
+            else
+            {
+                List<Message> messages = JsonConvert.DeserializeObject<List<Message>>(IO.File.ReadAllText(path));
+
+                messages.Add(messege);
+
+                await using (IO.StreamWriter sw = IO.File.CreateText(path))
+                {
+                    sw.WriteLine(JsonConvert.SerializeObject(messages));
+                }
+            }
 
             return new OkResult();
         }
